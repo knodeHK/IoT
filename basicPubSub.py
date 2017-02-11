@@ -21,10 +21,39 @@ import logging
 import time
 import getopt
 
+# import cassandra driver 
+# connecting local cassandra instant
+from cassandra.cluster import Cluster
+cluster = Cluster(['127.0.0.1'])
+session = cluster.connect('iot')
+
+import json
+from pandas.io.json import json_normalize
+
 # Custom MQTT message callback
 def customCallback(client, userdata, message):
 	print("Received a new message: ")
-	print(message.payload)
+#	print(message.payload)
+	print('Testing Json string')
+
+# 	Testing simply string
+#	json_string = '{"first_name": "Guido", "last_name":"Rossum"}'
+
+# 	Put the paylod from the message into json_string for printing and processing
+	json_string = message.payload
+
+#	Use json.loads function to parse the string to a parsed string, beware load vs loads, dump vs dumps, for detail reference to API doc.	
+	parsed_json = json.loads(json_string)
+#	print(parsed_json)
+
+#	Search the object name from the tree of json, beware the first level [0]
+#	print(parsed_json[0]['ObjectName'])
+
+#	Normalizing the parsed_json string to pandas data object.
+#	result = json_normalize(parsed_json, 'ObjectInfo', ['ObjectName'])
+	result = json_normalize(parsed_json, 'ObjectDetails', ['ObjectName'])	
+	print(result)
+
 	print("from topic: ")
 	print(message.topic)
 	print("--------------\n\n")
