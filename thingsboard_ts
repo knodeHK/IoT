@@ -36,3 +36,22 @@ cqlsh:thingsboard> select * from ts_kv_cf;
 
  entity_type | entity_id | key | partition | ts | bool_v | dbl_v | long_v | str_v
 -------------+-----------+-----+-----------+----+--------+-------+--------+-------
+
+
+CREATE TABLE thingsboard.ts_kv_latest_cf (
+    entity_type text,
+    entity_id timeuuid,
+    key text,
+    bool_v boolean,
+    dbl_v double,
+    long_v bigint,
+    str_v text,
+    ts bigint,
+    PRIMARY KEY ((entity_type, entity_id), key)
+) WITH CLUSTERING ORDER BY (key ASC)
+
+
+cqlsh:thingsboard> select * from ts_kv_latest_cf;
+
+ entity_type | entity_id | key | bool_v | dbl_v | long_v | str_v | ts
+-------------+-----------+-----+--------+-------+--------+-------+----
