@@ -51,3 +51,23 @@ cqlsh:thingsboard> select * from ts_kv_partitions_cf;
 
  entity_type | entity_id | key | partition
 -------------+-----------+-----+-----------
+
+CREATE TABLE thingsboard.attributes_kv_cf (
+    entity_type text,
+    entity_id timeuuid,
+    attribute_type text,
+    attribute_key text,
+    bool_v boolean,
+    dbl_v double,
+    last_update_ts bigint,
+    long_v bigint,
+    str_v text,
+    PRIMARY KEY ((entity_type, entity_id, attribute_type), attribute_key)
+) WITH CLUSTERING ORDER BY (attribute_key ASC)
+
+cqlsh:thingsboard> select * from attributes_kv_cf ;
+
+ entity_type | entity_id | attribute_type | attribute_key | bool_v | dbl_v | last_update_ts | long_v | str_v
+-------------+-----------+----------------+---------------+--------+-------+----------------+--------+-------
+
+
