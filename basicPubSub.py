@@ -15,6 +15,8 @@
  */
  '''
 
+from datetime import datetime
+
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 import sys
 import logging
@@ -32,14 +34,15 @@ from pandas.io.json import json_normalize
 
 # Custom MQTT message callback
 def customCallback(client, userdata, message):
-	print("Received a new message: ")
+#	print("Received a new message: ")
 #	print(message.payload)
-	print('Testing Json string')
-
+	
+#	print('Json string')
 # 	Testing simply string
 #	json_string = '{"first_name": "Guido", "last_name":"Rossum"}'
 
 # 	Put the paylod from the message into json_string for printing and processing
+
 	json_string = message.payload
 
 #	Use json.loads function to parse the string to a parsed string, beware load vs loads, dump vs dumps, for detail reference to API doc.	
@@ -51,8 +54,43 @@ def customCallback(client, userdata, message):
 
 #	Normalizing the parsed_json string to pandas data object.
 #	result = json_normalize(parsed_json, 'ObjectInfo', ['ObjectName'])
-	result = json_normalize(parsed_json, 'ObjectDetails', ['ObjectName'])	
-	print(result)
+	if message.topic == '5287c1cc-eea2-11e6-bf34-000c29158b55/Data' :
+		result = json_normalize(parsed_json, 'ObjectContent', ['ObjectName', 'TimeStamp'])
+#		result = json_normalize(parsed_json, 'ObjectDetails', ['ObjectName'])	
+		print(result)
+#		print(result.dtypes)
+
+
+		for index, row in result.iterrows():	
+
+#			print(row['ObjectDetails'].type)
+#			print(row['FieldName'].type)
+
+			
+			list_string = str([str(x) for x in row['ObjectDetails']])
+			print(list_string)
+
+#			test_statement = row['ObjectDetails'].astype(str).values
+#			test_statement = row['ObjectDetails'] + "')"
+
+			# Need to convert the timestamp format 
+#			timestamp_string = "{:%B %d, %Y}".format(row['TimeStamp'])
+			timestamp_string = '2017-02-17 11:25:12'
+#			print(timestamp_string) 
+			timestamp = str(row['TimeStamp'])
+			datetime_object = datetime.strptime(timestamp, '%H:%M:%S %d %b %Y')
+			print(datetime_object)
+#			print(timestamp.dt.strftime('%Y-%m-%d'))
+
+			sql_insert = "INSERT INTO data (registry_no, object_name, field_name, created_date, objectdetails) VALUES (" 
+			sql_data = "5287c1cc-eea2-11e6-bf34-000c29158b55" + ", '" + row['ObjectName'] + "', '" + row['FieldName'] + "', '" + str(datetime_object)	+ "', "  + list_string + ")"
+
+			sql_statement = sql_insert + sql_data
+
+			print ("-- sql_statement --") 
+			print (sql_statement) 
+
+			session.execute(sql_statement)
 
 	print("from topic: ")
 	print(message.topic)
@@ -60,13 +98,10 @@ def customCallback(client, userdata, message):
 
 # Usage
 usageInfo = """Usage:
-
 Use certificate based mutual authentication:
 python basicPubSub.py -e <endpoint> -r <rootCAFilePath> -c <certFilePath> -k <privateKeyFilePath>
-
 Use MQTT over WebSocket:
 python basicPubSub.py -e <endpoint> -r <rootCAFilePath> -w
-
 Type "python basicPubSub.py -h" for available options.
 """
 # Help info
@@ -82,8 +117,6 @@ helpInfo = """-e, --endpoint
 	Use MQTT over WebSocket
 -h, --help
 	Help information
-
-
 """
 
 # Read in command-line parameters
@@ -166,7 +199,7 @@ myAWSIoTMQTTClient.configureMQTTOperationTimeout(5)  # 5 sec
 myAWSIoTMQTTClient.connect()
 #myAWSIoTMQTTClient.subscribe("sdk/test/Python", 1, customCallback)
 myAWSIoTMQTTClient.subscribe("SystemRegistry", 1, customCallback)
-myAWSIoTMQTTClient.subscribe("Data", 1, customCallback)
+myAWSIoTMQTTClient.subscribe("5287c1cc-eea2-11e6-bf34-000c29158b55/Data", 1, customCallback)
 #time.sleep(2)
 time.sleep(200000)
 
